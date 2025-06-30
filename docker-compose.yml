@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  ai-diagram-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - TEMP_DIR=./temp
+      - LOG_LEVEL=INFO
+      - MOCK_LLM=false
+    env_file:
+      - .env
+    volumes:
+      - ./temp:/app/temp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a simple web interface for testing
+  web-interface:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/usr/share/nginx/html
+    depends_on:
+      - ai-diagram-service
+    restart: unless-stopped 

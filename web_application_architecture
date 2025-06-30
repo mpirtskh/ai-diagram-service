@@ -1,0 +1,16 @@
+digraph "Web Application Architecture" {
+	graph [fontcolor="#2D3436" fontname="Sans-Serif" fontsize=15 label="Web Application Architecture" nodesep=0.60 pad=2.0 rankdir=LR ranksep=0.75 splines=ortho]
+	node [fixedsize=true fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 height=1.4 imagescale=true labelloc=b shape=box style=rounded width=1.4]
+	edge [color="#7B8894"]
+	"6082b7124adc49389c38bf399e865de5" -> "83794bdc58b44a3997e754c168c97fa5" [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	"6082b7124adc49389c38bf399e865de5" -> "4b2505bd03be4adebdb9d516490c2560" [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	subgraph "cluster_Web Tier" {
+		graph [bgcolor="#E5F5FD" fontname="Sans-Serif" fontsize=12 label="Web Tier" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+		"6082b7124adc49389c38bf399e865de5" [label="Application Load Balancer" height=1.9 image="/Users/mariamprtskh/SD_Solutions_Project/venv/lib/python3.12/site-packages/resources/aws/network/elb-application-load-balancer.png" shape=none]
+		"83794bdc58b44a3997e754c168c97fa5" [label="Web Server 1" height=1.9 image="/Users/mariamprtskh/SD_Solutions_Project/venv/lib/python3.12/site-packages/resources/aws/compute/ec2.png" shape=none]
+		"4b2505bd03be4adebdb9d516490c2560" [label="Web Server 2" height=1.9 image="/Users/mariamprtskh/SD_Solutions_Project/venv/lib/python3.12/site-packages/resources/aws/compute/ec2.png" shape=none]
+	}
+	"15fc093d8a3a4e98940a401fb788ceac" [label=Database height=1.9 image="/Users/mariamprtskh/SD_Solutions_Project/venv/lib/python3.12/site-packages/resources/aws/database/rds.png" shape=none]
+	"83794bdc58b44a3997e754c168c97fa5" -> "15fc093d8a3a4e98940a401fb788ceac" [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	"4b2505bd03be4adebdb9d516490c2560" -> "15fc093d8a3a4e98940a401fb788ceac" [dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+}
