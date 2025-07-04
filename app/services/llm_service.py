@@ -43,15 +43,13 @@ class LLMService:
         
         # If we have an API key and mock mode is disabled, set up the real LLM
         if not self.mock_mode and settings.google_api_key:
-            # Configure Google's Generative AI with our API key
-            genai.configure(api_key=settings.google_api_key)
-            
             # Create the LLM client
             self.llm = ChatGoogleGenerativeAI(
-                model="gemini-pro",  # Use Gemini Pro model
+                model="gemini-1.5-pro",  # Use Gemini 1.5 Pro model
                 temperature=0.7,     # Controls randomness (0.0 = deterministic, 1.0 = very random)
-                max_output_tokens=2048,  # Maximum length of response
-                convert_system_message_to_human=True  # Required for Gemini
+                max_tokens=2048,  # Maximum length of response
+                convert_system_message_to_human=True,  # Required for Gemini
+                google_api_key=settings.google_api_key
             )
         elif self.mock_mode:
             # Log that we're running in mock mode
@@ -84,44 +82,38 @@ class LLMService:
             )
         
         # Define the system prompt that instructs the LLM how to generate diagram code
-        system_prompt = """You are an expert at creating diagrams using Python's diagrams package. 
-        Given a natural language description, generate Python code that creates the described diagram.
-        
-        Rules:
-        1. Use the diagrams package with proper imports
-        2. Support AWS services (EC2, RDS, ALB, S3, SQS, CloudWatch, API Gateway, IAM)
-        3. Support on-premise services (Server, PostgreSQL, Internet)
-        4. Support programming frameworks (React, FastAPI, Python)
-        5. Use clusters to group related components
-        6. Create meaningful connections between components
-        7. Use descriptive names for components
-        8. Set show=False in the Diagram constructor
-        9. Return only the Python code, no explanations
-        
-        Example:
-        Input: "Create a web application with load balancer and database"
-        Output:
-        from diagrams import Diagram, Cluster
-        from diagrams.aws.compute import EC2
-        from diagrams.aws.database import RDS
-        from diagrams.aws.network import ALB
-        
-        with Diagram("Web Application", show=False):
-            with Cluster("Web Tier"):
-                alb = ALB("Load Balancer")
-                web1 = EC2("Web Server 1")
-                web2 = EC2("Web Server 2")
-                alb >> web1
-                alb >> web2
-            
-            db = RDS("Database")
-            web1 >> db
-            web2 >> db"""
+        system_prompt = """
+You are a helpful assistant for creating architecture diagrams.
+
+When a user describes a system, respond with a structured list of components, clusters, and how they are connected. Do not write any code. Just describe the diagram in terms of:
+
+- Components (e.g., EC2 instance, RDS database, Load Balancer)
+- Clusters or groups (e.g., "Web Tier" cluster)
+- Connections (e.g., "Load Balancer connects to Web Tier", "Web Tier connects to Database")
+
+Example:
+
+User: "Create a diagram showing a basic web application with an Application Load Balancer, two EC2 instances for the web servers, and an RDS database for storage. The web servers should be in a cluster named 'Web Tier'."
+
+Your response:
+Components:
+- Application Load Balancer
+- Web Tier (cluster)
+  - Web Server 1 (EC2)
+  - Web Server 2 (EC2)
+- Database (RDS)
+
+Connections:
+- Application Load Balancer connects to Web Server 1 and Web Server 2
+- Web Server 1 and Web Server 2 connect to Database
+
+If you need more information, ask clarifying questions.
+"""
         
         # Create the messages for the LLM
         messages = [
             SystemMessage(content=system_prompt),
-            HumanMessage(content=f"Create a diagram for: {description}")
+            HumanMessage(content=f"User: {description}")
         ]
         
         try:
@@ -314,4 +306,17 @@ with Diagram("Custom Architecture", show=False):
                    "Just describe what you want to visualize and I'll help you create it!")
         else:
             return ("Hello! I'm here to help you create diagrams. "
-                   "What would you like to visualize today?") 
+                   "What would you like to visualize today?")
+
+    async def get_diagram_description(self, description: str) -> str:
+        # ... (use the new system_prompt above)
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=f"User: {description}")
+        ]
+        try:
+            response = await asyncio.to_thread(self.llm.invoke, messages)
+            return response.content  # This will be a structured description, not code!
+        except Exception as e:
+            logger.error(f"Error getting diagram description: {e}")
+            raise 

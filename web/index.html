@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>AI Diagram Generator</title>
     <style>
         body {
@@ -185,7 +188,10 @@
             showResult(resultDiv, '<div class="loading">Generating diagram...</div>', '');
 
             try {
-                const response = await fetch('/generate-diagram', {
+                console.log('Making request to:', 'http://localhost:8000/generate-diagram');
+                console.log('Request data:', { description, format });
+                
+                const response = await fetch('http://localhost:8000/generate-diagram', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -196,7 +202,11 @@
                     })
                 });
 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
                 const result = await response.json();
+                console.log('Response data:', result);
 
                 if (result.success) {
                     const imageUrl = `http://localhost:8000${result.image_url}`;
@@ -241,7 +251,7 @@
             conversationContainer.style.display = 'block';
 
             try {
-                const response = await fetch('/assistant', {
+                const response = await fetch('http://localhost:8000/assistant', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -303,7 +313,7 @@
             healthBtn.textContent = 'Checking...';
 
             try {
-                const response = await fetch('/health');
+                const response = await fetch('http://localhost:8000/health');
                 const result = await response.json();
 
                 if (response.ok) {
